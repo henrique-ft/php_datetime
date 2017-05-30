@@ -10,6 +10,8 @@
 
 namespace Blacktools\DateTime;
 
+use Blacktools\DateTime\ErrorHandler;
+
 class DateMachine
 {
 
@@ -19,41 +21,41 @@ class DateMachine
     /**
      * @param array $settings
      */
-	public function __construct($settings = array())
+	public function __construct($settings = [])
 	{
 
-		$this->config = array(
+		$this->config = [
 
 				'show_format' => 'Y-m-d',
 				'language' => 'EN',
 				'timezone' => 'America/Sao_Paulo'
-			);
+			];
 
-		$this->languages = array( 
+		$this->languages = [ 
 
 
-					'PT' => array(
+					'PT' => [
 
-								'days' => array('Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'),
-								'months' => array('janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho','agosto','setembro','outubro','novembro','dezembro')
+								'days' => ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'],
+								'months' => ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho','agosto','setembro','outubro','novembro','dezembro']
 
-							),
+							],
 							
-					'EN' => array(
+					'EN' => [
 
-								'days' => array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'),
-								'months' => array('january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december')
+								'days' => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+								'months' => ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
 
-							),
+							],
 							
-					'ES' => array(
+					'ES' => [
 
-								'days' => array('Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'),
-								'months' => array('enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre')
+								'days' => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+								'months' => ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
-							)
+							]
 
-			);
+			];
 
 		$this->config($settings);
 
@@ -79,11 +81,7 @@ class DateMachine
 
 		} catch (\Exception $e) {
 			
-	        if (!empty(ini_get('display_errors'))) {
-                
-	            echo $e->getTraceAsString();
-	            die($e->getMessage());  
-            }
+	        ErrorHandler::displayErrorAndDie($e);
 		}
 	}
 
@@ -109,11 +107,7 @@ class DateMachine
 
 		} catch (\Exception $e) {
 			
-	        if (!empty(ini_get('display_errors'))) {
-                
-	            echo $e->getTraceAsString();
-	            die($e->getMessage());  
-            }
+	        ErrorHandler::displayError($e);
 
             return null;
 		}
@@ -171,11 +165,7 @@ class DateMachine
 
 		} catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
 		}
@@ -205,11 +195,7 @@ class DateMachine
 
 		} catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
 		}
@@ -305,11 +291,7 @@ class DateMachine
 
      	} catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
      	}
@@ -347,11 +329,7 @@ class DateMachine
 
 	    } catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
      	}
@@ -414,11 +392,7 @@ class DateMachine
 
 		} catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
 
@@ -458,11 +432,7 @@ class DateMachine
 
 		} catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
 

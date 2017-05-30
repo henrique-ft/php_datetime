@@ -13,6 +13,8 @@ namespace Blacktools\DateTime;
 use Blacktools\DateTime\TimeMachine;
 use Blacktools\DateTime\DateMachine;
 
+use Blacktools\DateTime\ErrorHandler;
+
 class Schedule
 {
 
@@ -28,20 +30,21 @@ class Schedule
     /**
      * @param array $settings
      */
-	public function __construct($settings = array())
+	public function __construct($settings = [])
 	{
 		try {
 
             if (!is_array($settings)) {
                     
                 throw new \Exception("Config parameter must be a array");
-                    
             }
+            
+            $errors = [];
 
 			$this->date = new DateMachine();
 			$this->time = new TimeMachine();
 
-			$this->config = array(
+			$this->config = [
 
 					'table_attributes' => '',
 					'thead_attributes' => '',
@@ -55,25 +58,21 @@ class Schedule
 					'show_time_format' => 'H:i:s',
 					'show_hour_interval' => true,
 					'start_date' => date("Y-m-d"),
-					'end_date' => DateMachine::addDays(date("Y-m-d"),7,false),
+					'end_date' => DateMachine::addDays(date("Y-m-d"), 7, false),
 					'show_week_days' => true,
 					'language' => 'PT',
 					'start_hour' => '00:00:00',
 					'end_hour' => '23:59:59',
 					'work_by' => 'all',
-					'hour_interval' => '01:00:00'
+					'hour_interval' => '01:00:00',
 
-				);
+				];
 
 			$this->config($settings);
 
 		} catch(\Exception $e) {
 
-	        if (!empty(ini_get('display_errors'))) {
-                
-	            echo $e->getTraceAsString();
-	            die($e->getMessage());  
-            }
+	        ErrorHandler::displayErrorAndDie($e);
 		}
 	}
 
@@ -99,17 +98,16 @@ class Schedule
 			if (!is_array($settings)) {
 	                    
 	            throw new \Exception("Config parameter must be a array");
-	                    
 	        }
 	
 			$this->config = array_replace( $this->config, array_intersect_key( $settings, $this->config ) );
-			$this->date->config( array( 'show_format' => $this->config['show_date_format'] ) );
-			$this->time->config( array( 'show_format' => $this->config['show_time_format'] ) );
+			$this->date->config( ['show_format' => $this->config['show_date_format'] ] );
+			$this->time->config( ['show_format' => $this->config['show_time_format'] ] );
 	
-			if ($this->config['work_by'] == 'week_day') {
+			if ($this->config['work_by'] === 'week_day') {
 	
-				$this->week_days = array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
-				$this->week_days_numeric = array(0,1,2,3,4,5,6);
+				$this->week_days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+				$this->week_days_numeric = [0,1,2,3,4,5,6];
 	
 			} else {
 	
@@ -117,18 +115,19 @@ class Schedule
 				$this->week_days = $this->date->weekDays( $this->config['start_date'], $this->config['end_date'], 'name');
 				$this->week_days_numeric = $this->date->weekDays( $this->config['start_date'], $this->config['end_date']);
 			}
-	
+			
+			if ($this->config['start_hour'] === '00:00:00' && $this->config['end_hour'] === '00:00:00') {
+				
+				$this->config['end_hour'] = '23:59:59';
+			}
+			
 			$this->hours = $this->time->interval( $this->config['start_hour'], $this->config['end_hour'], $this->config['hour_interval'] );
 	
 			$this->cellsGenerate();
 			
         } catch(\Exception $e) {
             
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                die($e->getMessage());   
-            }
+            ErrorHandler::displayError($e);
         }
 
 	}
@@ -141,9 +140,9 @@ class Schedule
 
 		try {
 
-			$cells = array();
+			$cells = [];
 
-			if ($this->config['work_by'] == 'week_day') {
+			if ($this->config['work_by'] === 'week_day') {
 
 				foreach ( $this->week_days_numeric as $day ) {
 				
@@ -155,7 +154,7 @@ class Schedule
 				}
 
 
-			} elseif ($this->config['work_by'] == 'month_day') {
+			} elseif ($this->config['work_by'] === 'month_day') {
 
 				foreach ( $this->dates as $date ) {
 				
@@ -171,9 +170,9 @@ class Schedule
 				foreach (  $this->dates as $date ) {
 				
 					foreach ( $this->week_days_numeric as $day ) {
-
+						
 						foreach ( $this->hours as $hour ) {
-
+							
 							$cells[$date][$day][$hour] = array( 'content' => '', 'attributes' => '');
 						}
 					}
@@ -186,11 +185,7 @@ class Schedule
 
 		} catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+			ErrorHandler::displayError($e);
             
             return null;
 		}
@@ -205,7 +200,7 @@ class Schedule
 
 			$debug = '<table>';
 
-				if ($this->config['work_by'] != 'week_day') {
+				if ($this->config['work_by'] !== 'week_day') {
 
 					$debug .= '<tr> <th></th>';
 
@@ -229,7 +224,7 @@ class Schedule
 			$debug .= '</tr>';	
 
 
-			if ($this->config['work_by'] == 'week_day') {
+			if ($this->config['work_by'] === 'week_day') {
 
 				foreach ($this->hours as $hour) {
 					
@@ -250,7 +245,7 @@ class Schedule
 				}
 
 
-			} elseif($this->config['work_by'] == 'month_day') {
+			} elseif($this->config['work_by'] === 'month_day') {
 
 				foreach ($this->hours as $hour) {
 					
@@ -322,21 +317,17 @@ class Schedule
 			
 		} catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
 		}
 
 	}
-
+	
     /**
      * @return string
      */
-	public function get()
+	public function getHtml()
 	{
 		/* Start Table */
 
@@ -351,7 +342,7 @@ class Schedule
 				$schedule = '<table '.$this->config['table_attributes'].'><thead '. $this->config['thead_attributes'] .'>';
 			}
 
-			if ($this->config['work_by'] != 'week_day') {
+			if ($this->config['work_by'] !== 'week_day') {
 
 				$schedule .= '<tr '. $this->config['month_days_attributes'] .'> <th></th>';
 
@@ -363,7 +354,7 @@ class Schedule
 				$schedule .= '</tr>';	
 			}
 
-			if (($this->config['work_by'] == 'week_day') || $this->config['show_week_days']) {
+			if (($this->config['work_by'] === 'week_day') || $this->config['show_week_days']) {
 
 				$schedule .= '<tr '. $this->config['week_days_attributes'] .'> <th></th>';
 
@@ -382,7 +373,7 @@ class Schedule
 
 			$schedule .= '</thead><tbody '. $this->config['tbody_attributes'] .'>';
 
-			if ($this->config['work_by'] == 'week_day') {
+			if ($this->config['work_by'] === 'week_day') {
 
 				foreach ($this->hours as $hour) {
 					
@@ -404,7 +395,7 @@ class Schedule
 					$schedule .= '</tr>';
 				} 
 
-			} elseif($this->config['work_by'] == 'month_day') {
+			} elseif($this->config['work_by'] === 'month_day') {
 
 				foreach ($this->hours as $hour) {
 
@@ -464,7 +455,14 @@ class Schedule
 		/* End Table */
 
 		return $schedule;
-
+	}
+	
+	/**
+     * @return string
+     */
+	public function getJson()
+	{
+		return json_encode($this->cells);
 	}
 
 }

@@ -10,6 +10,8 @@
 
 namespace Blacktools\DateTime;
 
+use Blacktools\DateTime\ErrorHandler;
+
 class TimeMachine
 {
 
@@ -18,14 +20,13 @@ class TimeMachine
     /**
      * @param array $settings
      */
-    public function __construct($settings = array())
+    public function __construct($settings = [])
     {
 
-        $this->config = array(
+        $this->config = [
 
                 'show_format' => 'H:i:s'
-                
-            );
+            ];
 
         $this->config($settings);
 
@@ -42,18 +43,13 @@ class TimeMachine
             if (!is_array($settings)) {
                     
                 throw new \Exception("Config parameter must be a array");
-                    
             }
 
             $this->config = array_replace($this->config, array_intersect_key($settings, $this->config));
 
         } catch(\Exception $e) {
             
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                die($e->getMessage());   
-            }
+            ErrorHandler::displayErrorAndDie($e);
         }
     }
 
@@ -84,11 +80,7 @@ class TimeMachine
 
         } catch (\Exception $e) {
             
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                die($e->getMessage());  
-            }
+            ErrorHandler::displayError($e);
 
             return null;
         }
@@ -145,11 +137,7 @@ class TimeMachine
 
         } catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
         }
@@ -178,11 +166,7 @@ class TimeMachine
 
         } catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
         }
@@ -253,11 +237,7 @@ class TimeMachine
 
         } catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
         }
@@ -323,11 +303,7 @@ class TimeMachine
 
         } catch(\Exception $e) { 
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
         }
@@ -381,11 +357,7 @@ class TimeMachine
 
         } catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
         }
@@ -436,11 +408,7 @@ class TimeMachine
 
         } catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
         }
@@ -480,11 +448,7 @@ class TimeMachine
 
         } catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
         }
@@ -503,7 +467,7 @@ class TimeMachine
                 
             /* Get func args */
 
-            $times = array();
+            $times = [];
 
             $num_args = func_num_args();
 
@@ -594,11 +558,7 @@ class TimeMachine
 
         } catch(\Exception $e) {
 
-            if (!empty(ini_get('display_errors'))) {
-                
-                echo $e->getTraceAsString();
-                echo $e->getMessage();   
-            }
+            ErrorHandler::displayError($e);
             
             return null;
 

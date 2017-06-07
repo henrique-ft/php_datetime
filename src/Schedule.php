@@ -60,6 +60,7 @@ class Schedule
 					'start_date' => date("Y-m-d"),
 					'end_date' => DateMachine::addDays(date("Y-m-d"), 7, false),
 					'show_week_days' => true,
+					'show_month_days' => true,
 					'language' => 'PT',
 					'start_hour' => '00:00:00',
 					'end_hour' => '23:59:59',
@@ -324,6 +325,126 @@ class Schedule
 
 	}
 	
+	private function getHtmlThTd()
+	{
+		$schedule = '';
+		
+		if ($this->config['work_by'] !== 'week_day' && $this->config['show_month_days'] !== false) {
+			
+			$schedule .= '<tr '. $this->config['month_days_attributes'] .'> <th></th>';
+
+				foreach ($this->dates as $date) {
+
+					$schedule .= '<th>' . $this->date->toShow($date) . '</th>';
+				}
+
+			$schedule .= '</tr>';	
+		}
+
+		if (($this->config['work_by'] === 'week_day') || $this->config['show_week_days'] === true) {
+
+			$schedule .= '<tr '. $this->config['week_days_attributes'] .'> <th></th>';
+
+				foreach ($this->week_days as $day) {
+
+					$schedule .= "<th> $day </th>";
+
+				}
+
+			$schedule .= '</tr>';	
+		}
+		
+		return $schedule;
+	}
+	
+	private function getHtmlTrTdWeekDay()
+	{
+		$schedule = '';
+		
+		foreach ($this->hours as $hour) {
+			
+			if ($this->config['show_hour_interval']) {
+
+				$hour_interval = $this->time->toShow($this->time->sum($hour,'00:30:00'));
+				$schedule .= "<tr><td ". $this->config['hours_attributes'] .">".$this->time->toShow($hour)." <br> $hour_interval</td>";
+
+			} else {
+
+				$schedule .= "<tr><td ". $this->config['hours_attributes'] .">".$this->time->toShow($hour)."</td>";
+			}
+
+			foreach ($this->week_days_numeric as $day) {
+					
+				$schedule .= "<td ".$this->cells[$day][$hour]['attributes']." data-td='$day/$hour'>".$this->cells[$day][$hour]['content']."</td>"; 
+			}
+
+			$schedule .= '</tr>';
+		} 
+				
+		return $schedule;
+	}
+	
+	private function getHtmlTrTdMonthDay()
+	{
+		$schedule = '';
+		
+		foreach ($this->hours as $hour) {
+
+			if ($this->config['show_hour_interval']) {
+
+				$hour_interval = $this->time->toShow($this->time->sum($hour,'00:30:00'));
+				$schedule .= "<tr><td ". $this->config['hours_attributes'] .">".$this->time->toShow($hour)." <br> $hour_interval</td>";
+
+			} else {
+
+				$schedule .= "<tr><td ". $this->config['hours_attributes'] .">".$this->time->toShow($hour)."</td>";
+			}
+
+			foreach ($this->dates as $date) {
+				
+				$schedule .= "<td ".$this->cells[$date][$hour]['attributes']." data_td='$date/$hour'>".$this->cells[$date][$hour]['content']."</td>";
+			}
+
+			$schedule .= '</tr>';
+		}
+				
+		return $schedule;
+	}
+
+	private function getHtmlTrTdDefault()
+	{
+		$schedule = '';
+		
+		foreach ($this->hours as $hour) {
+
+			if ($this->config['show_hour_interval']) {
+
+				$hour_interval = $this->time->toShow($this->time->sum($hour,'00:30:00'));
+				$schedule .= "<tr><td ". $this->config['hours_attributes'] .">".$this->time->toShow($hour)." <br> $hour_interval</td>";
+
+			} else {
+
+				$schedule .= "<tr><td ". $this->config['hours_attributes'] .">".$this->time->toShow($hour)."</td>";
+			}
+
+			$i = 0;
+
+			foreach ($this->dates as $date) {
+				
+				$day = $this->week_days_numeric[$i];
+
+				$schedule .= "<td ".$this->cells[$date][$day][$hour]['attributes']." data-td='$date/$day/$hour'>".$this->cells[$date][$day][$hour]['content']."</td>"; // Muda para [$dia][$data][$hora]
+
+				$i++;
+			}
+			
+
+			$schedule .= '</tr>';
+		}
+				
+		return $schedule;
+	}
+	
     /**
      * @return string
      */
@@ -333,124 +454,35 @@ class Schedule
 
 		/* Head */
 
-			if ($this->config['caption_content']) {
+		if ($this->config['caption_content']) {
 
-				$schedule = '<table '.$this->config['table_attributes'].'><caption '.$this->config['caption_attributes'].' >'.$this->config['caption_content'].'</caption><thead '. $this->config['thead_attributes'] .'>';
+			$schedule = '<table ' . $this->config['table_attributes'] . '><caption ' . $this->config['caption_attributes'].' >' . $this->config['caption_content'] .'</caption><thead '. $this->config['thead_attributes'] . '>' . $this->getHtmlThTd();
 
-			} else {
+		} else {
 
-				$schedule = '<table '.$this->config['table_attributes'].'><thead '. $this->config['thead_attributes'] .'>';
-			}
-
-			if ($this->config['work_by'] !== 'week_day') {
-
-				$schedule .= '<tr '. $this->config['month_days_attributes'] .'> <th></th>';
-
-					foreach ($this->dates as $date) {
-
-						$schedule .= '<th>' . $this->date->toShow($date) . '</th>';
-					}
-
-				$schedule .= '</tr>';	
-			}
-
-			if (($this->config['work_by'] === 'week_day') || $this->config['show_week_days']) {
-
-				$schedule .= '<tr '. $this->config['week_days_attributes'] .'> <th></th>';
-
-					foreach ($this->week_days as $day) {
-
-						$schedule .= "<th> $day </th>";
-
-					}
-
-				$schedule .= '</tr>';	
-			}
+			$schedule = '<table ' . $this->config['table_attributes'] . '><thead ' . $this->config['thead_attributes'] .'>' .  $this->getHtmlThTd();
+		}
 
 		/* End Head*/
 
 		/* Body */
 
-			$schedule .= '</thead><tbody '. $this->config['tbody_attributes'] .'>';
 
-			if ($this->config['work_by'] === 'week_day') {
+		if ($this->config['work_by'] === 'week_day') {
 
-				foreach ($this->hours as $hour) {
-					
-					if ($this->config['show_hour_interval']) {
+			$schedule .= '</thead><tbody '. $this->config['tbody_attributes'] .'>' . $this->getHtmlTrTdWeekDay() . '</tbody></table>';
 
-						$hour_interval = $this->time->toShow($this->time->sum($hour,'00:30:00'));
-						$schedule .= "<tr><td ". $this->config['hours_attributes'] .">".$this->time->toShow($hour)." <br> $hour_interval</td>";
+		} elseif ($this->config['work_by'] === 'month_day') {
 
-					} else {
+			$schedule .= '</thead><tbody '. $this->config['tbody_attributes'] .'>' . $this->getHtmlTrTdMonthDay(). '</tbody></table>';
 
-						$schedule .= "<tr><td ". $this->config['hours_attributes'] .">".$this->time->toShow($hour)."</td>";
-					}
+		} else {
 
-					foreach ($this->week_days_numeric as $day) {
-							
-						$schedule .= "<td ".$this->cells[$day][$hour]['attributes']." data-td='$day/$hour'>".$this->cells[$day][$hour]['content']."</td>"; 
-					}
-
-					$schedule .= '</tr>';
-				} 
-
-			} elseif($this->config['work_by'] === 'month_day') {
-
-				foreach ($this->hours as $hour) {
-
-					if ($this->config['show_hour_interval']) {
-
-						$hour_interval = $this->time->toShow($this->time->sum($hour,'00:30:00'));
-						$schedule .= "<tr><td ". $this->config['hours_attributes'] .">".$this->time->toShow($hour)." <br> $hour_interval</td>";
-
-					} else {
-
-						$schedule .= "<tr><td ". $this->config['hours_attributes'] .">".$this->time->toShow($hour)."</td>";
-					}
-
-						foreach ($this->dates as $date) {
-							
-							$schedule .= "<td ".$this->cells[$date][$hour]['attributes']." data_td='$date/$hour'>".$this->cells[$date][$hour]['content']."</td>";
-						}
-
-					$schedule .= '</tr>';
-				}
-
-			} else {
-
-				foreach ($this->hours as $hour) {
-
-						if ($this->config['show_hour_interval']) {
-
-							$hour_interval = $this->time->toShow($this->time->sum($hour,'00:30:00'));
-							$schedule .= "<tr><td ". $this->config['hours_attributes'] .">".$this->time->toShow($hour)." <br> $hour_interval</td>";
-
-						} else {
-
-							$schedule .= "<tr><td ". $this->config['hours_attributes'] .">".$this->time->toShow($hour)."</td>";
-						}
-
-						$i = 0;
-
-						foreach ($this->dates as $date) {
-							
-							$day = $this->week_days_numeric[$i];
-
-							$schedule .= "<td ".$this->cells[$date][$day][$hour]['attributes']." data-td='$date/$day/$hour'>".$this->cells[$date][$day][$hour]['content']."</td>"; // Muda para [$dia][$data][$hora]
-
-							$i++;
-						}
-						
-
-					$schedule .= '</tr>';
-				}
-
-			}
+			$schedule .= '</thead><tbody '. $this->config['tbody_attributes'] .'>' . $this->getHtmlTrTdDefault(). '</tbody></table>';
+		}
 
 		/* End Body */
 
-			$schedule .= '</tbody></table>'; 
 
 		/* End Table */
 

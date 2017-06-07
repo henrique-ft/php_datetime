@@ -17,12 +17,13 @@ $schedule = new Blacktools\DateTime\Schedule([
 			'month_days_attributes' => '',
 			'show_date_format' => 'Y-m-d',
 			'show_time_format' => 'H:i:s',
-			'show_hour_interval' => true,
+			'show_hour_interval' => false,
 			'show_week_days' => true,
 			'language' => 'PT',
 			'start_hour' => '00:00:00',
-			'end_hour' => '00:00:00',
+			'end_hour' => '00:02:00',
 			'work_by' => 'all',
-			'hour_interval' => '00:10:00' 
+			'hour_interval' => '00:30:00' 
         ]);
 
+echo $schedule->getHtml();

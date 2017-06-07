@@ -1,7 +1,7 @@
 {
     "name": "blacktools/datetime",
     "type": "library",
-    "description": "",
+    "description": "A set of functions to work with date and time in PHP, it contains a powerful schedule maker.",
     "version": "1.0.0",
     "keywords": ["time","hour","date","functions","easy","blacktools","schedule"],
     "homepage": "https://github.com/henriquefernandez/PhpDateTime",

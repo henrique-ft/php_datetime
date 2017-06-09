@@ -26,6 +26,7 @@ class Schedule
 	private $hours;
 	private $cells;
 	private $config;
+	private $calendar_week_days_excluded;
 
     /**
      * @param array $settings
@@ -58,13 +59,14 @@ class Schedule
 					'show_time_format' => 'H:i:s',
 					'show_hour_interval' => true,
 					'start_date' => date("Y-m-d"),
-					'end_date' => DateMachine::addDays(date("Y-m-d"), 7, false),
+					'end_date' => DateMachine::addDays(date("Y-m-d"), 20, false),
 					'show_week_days' => true,
 					'show_month_days' => true,
 					'language' => 'PT',
 					'start_hour' => '00:00:00',
 					'end_hour' => '23:59:59',
 					'work_by' => 'all',
+					'calendar_start_week_day_number' => 1,
 					'hour_interval' => '01:00:00',
 
 				];
@@ -102,19 +104,25 @@ class Schedule
 	        }
 	
 			$this->config = array_replace( $this->config, array_intersect_key( $settings, $this->config ) );
-			$this->date->config( ['show_format' => $this->config['show_date_format'] ] );
-			$this->time->config( ['show_format' => $this->config['show_time_format'] ] );
-	
-			if ($this->config['work_by'] === 'week_day') {
-	
-				$this->week_days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-				$this->week_days_numeric = [0,1,2,3,4,5,6];
-	
+			$this->date->config( ['show_format' => $this->config['show_date_format'], 'language' => $this->config['language'] ] );
+			$this->time->config( ['show_format' => $this->config['show_time_format'], 'language' => $this->config['language'] ] );
+			
+			if ($this->config['work_by'] === 'calendar') { 
+				
+				$this->calendar_week_days_excluded = $this->date->getUntilWeekDayBefore($this->config['start_date'], $this->config['calendar_start_week_day_number']);
+				
+				array_pop($this->calendar_week_days_excluded);
+				
+				$this->dates = $this->date->interval( $this->date->getUntilWeekDayBefore($this->config['start_date'], $this->config['calendar_start_week_day_number'], false), $this->config['end_date'] );
+				$this->week_days = $this->date->weekDaysBetween( $this->date->getUntilWeekDayBefore($this->config['start_date'], $this->config['calendar_start_week_day_number'], false), $this->config['end_date'], 'name');
+				$this->week_days_numeric = $this->date->weekDaysBetween( $this->date->getUntilWeekDayBefore($this->config['start_date'], $this->config['calendar_start_week_day_number'], false), $this->config['end_date']);
+				
 			} else {
-	
+			
 				$this->dates = $this->date->interval( $this->config['start_date'], $this->config['end_date'] );
-				$this->week_days = $this->date->weekDays( $this->config['start_date'], $this->config['end_date'], 'name');
-				$this->week_days_numeric = $this->date->weekDays( $this->config['start_date'], $this->config['end_date']);
+				$this->week_days = $this->date->weekDaysBetween( $this->config['start_date'], $this->config['end_date'], 'name');
+				$this->week_days_numeric = $this->date->weekDaysBetween( $this->config['start_date'], $this->config['end_date']);
+			
 			}
 			
 			if ($this->config['start_hour'] === '00:00:00' && $this->config['end_hour'] === '00:00:00') {
@@ -145,11 +153,11 @@ class Schedule
 
 			if ($this->config['work_by'] === 'week_day') {
 
-				foreach ( $this->week_days_numeric as $day ) {
+				foreach ($this->week_days_numeric as $day) {
 				
-					foreach ( $this->hours as $hour ) {
+					foreach ($this->hours as $hour) {
 						
-						$cells[$day][$hour] = array( 'content' => '', 'attributes' => '');
+						$cells[$day][$hour] = ['content' => '', 'attributes' => ''];
 					}
 
 				}
@@ -157,29 +165,34 @@ class Schedule
 
 			} elseif ($this->config['work_by'] === 'month_day') {
 
-				foreach ( $this->dates as $date ) {
+				foreach ($this->dates as $date) {
 				
-					foreach ( $this->hours as $hour ) {
+					foreach ($this->hours as $hour) {
 						
-						$cells[$date][$hour] = array( 'content' => '', 'attributes' => '');
+						$cells[$date][$hour] = ['content' => '', 'attributes' => ''];
 					}
 
 				}
 
+			} elseif ($this->config['work_by'] === 'calendar') {
+				
+				foreach ($this->dates as $date) {
+
+					$cells[$date][$this->date->weekDay($date)] = ['content' => '', 'attributes' => ''];
+				}
+				
 			} else { 
 
-				foreach (  $this->dates as $date ) {
+				foreach ($this->dates as $date) {
 				
-					foreach ( $this->week_days_numeric as $day ) {
+					foreach ($this->week_days_numeric as $day) {
 						
-						foreach ( $this->hours as $hour ) {
+						foreach ($this->hours as $hour) {
 							
-							$cells[$date][$day][$hour] = array( 'content' => '', 'attributes' => '');
+							$cells[$date][$day][$hour] = ['content' => '', 'attributes' => ''];
 						}
 					}
-
 				}
-
 			}
 
 			$this->cells = $cells;
@@ -198,32 +211,48 @@ class Schedule
      */
 	public function debug()
 	{
-
 			$debug = '<table>';
-
+			
+			if ($this->config['work_by'] === 'calendar') {
+				
+				$week_days = array_chunk($this->week_days,7);
+		
+				$debug .= '<tr '. $this->config['week_days_attributes'] .'>';
+		
+				foreach ($week_days[0] as $day) {
+					
+					$debug .= "<th> $day </th>";
+		
+				}
+				
+				$debug .= '</tr>';	
+				
+			} else {
+	
 				if ($this->config['work_by'] !== 'week_day') {
-
+	
 					$debug .= '<tr> <th></th>';
-
+	
 						foreach ( $this->dates as $date ) {
-
+	
 							$debug .= '<th>' . $this->date->toShow($date) . '</th>';
-
+	
 						}
-
+	
 					$debug .= '</tr>';	
 				}
-
-			$debug .= '<tr> <th></th>';
-
+	
+				$debug .= '<tr> <th></th>';
+	
 				foreach ($this->week_days as $day) {
 						
 					$debug .= "<th> $day </th>";
-
+	
 				}
-
-			$debug .= '</tr>';	
-
+	
+				$debug .= '</tr>';	
+			
+			}
 
 			if ($this->config['work_by'] === 'week_day') {
 
@@ -246,7 +275,7 @@ class Schedule
 				}
 
 
-			} elseif($this->config['work_by'] === 'month_day') {
+			} elseif ($this->config['work_by'] === 'month_day') {
 
 				foreach ($this->hours as $hour) {
 					
@@ -266,6 +295,34 @@ class Schedule
 					$debug .= '</tr>';
 				}
 
+			} elseif ($this->config['work_by'] === 'calendar') {
+				
+		
+				$weeks = array_chunk($this->dates,7);
+				$week_days_numeric = array_chunk($this->week_days_numeric,7);
+				
+				//var_dump($this->calendar_week_days_excluded);
+				
+				foreach ($weeks as $week_key => $week) {
+					
+					$debug .= "<tr>";
+					
+					foreach ($week as $day_key => $day) {
+						
+						if (!in_array($day, $this->calendar_week_days_excluded, true)) {
+														// Data / Dia da semana numérico
+							$debug .= "<td>"."['$day']['". $week_days_numeric[$week_key][$day_key]."']"."</td>";
+						
+						} else {
+							
+							$debug .= "<td></td>";
+						}
+					}
+					
+					$debug .= '</tr>';
+				}
+
+				
 			} else {
 
 				foreach ($this->hours as $hour) {
@@ -325,7 +382,7 @@ class Schedule
 
 	}
 	
-	private function getHtmlThTd()
+	private function getHtmlTrTh()
 	{
 		$schedule = '';
 		
@@ -353,6 +410,25 @@ class Schedule
 
 			$schedule .= '</tr>';	
 		}
+		
+		return $schedule;
+	}
+	
+	private function getHtmlTrThCalendar()
+	{
+		$schedule = '';
+		
+		$week_days = array_chunk($this->week_days,7);
+		
+		$schedule .= '<tr '. $this->config['week_days_attributes'] .'>';
+
+		foreach ($week_days[0] as $day) {
+
+			$schedule .= "<th> $day </th>";
+
+		}
+
+		$schedule .= '</tr>';	
 		
 		return $schedule;
 	}
@@ -411,6 +487,35 @@ class Schedule
 		return $schedule;
 	}
 
+	private function getHtmlTrTdCalendar()
+	{
+		$schedule = '';
+		
+		$weeks = array_chunk($this->dates,7);
+		$week_days_numeric = array_chunk($this->week_days_numeric,7);
+		
+		foreach ($weeks as $week_key => $week) {
+			
+			$schedule .= "<tr>";
+			
+			foreach ($week as $day_key => $day) {
+				
+				if (!in_array($day, $this->calendar_week_days_excluded, true)) {
+												// Data / Dia da semana numérico
+					$schedule .= "<td ".$this->cells[$day][$week_days_numeric[$week_key][$day_key]]['attributes']." data-td='$day/".$week_days_numeric[$week_key][$day_key]."'>".$this->cells[$day][$week_days_numeric[$week_key][$day_key]]['content']."</td>";
+				
+				} else {
+					
+					$schedule .= "<td></td>";
+				}	
+			}
+			
+			$schedule .= '</tr>';
+		}
+				
+		return $schedule;
+	}
+
 	private function getHtmlTrTdDefault()
 	{
 		$schedule = '';
@@ -453,14 +558,16 @@ class Schedule
 		/* Start Table */
 
 		/* Head */
+			
+		$tr_th = ($this->config['work_by'] === 'calendar') ? $this->getHtmlTrThCalendar() : $this->getHtmlTrTh();
 
 		if ($this->config['caption_content']) {
 
-			$schedule = '<table ' . $this->config['table_attributes'] . '><caption ' . $this->config['caption_attributes'].' >' . $this->config['caption_content'] .'</caption><thead '. $this->config['thead_attributes'] . '>' . $this->getHtmlThTd();
+			$schedule = '<table ' . $this->config['table_attributes'] . '><caption ' . $this->config['caption_attributes'].' >' . $this->config['caption_content'] .'</caption><thead '. $this->config['thead_attributes'] . '>' . $tr_th;
 
 		} else {
 
-			$schedule = '<table ' . $this->config['table_attributes'] . '><thead ' . $this->config['thead_attributes'] .'>' .  $this->getHtmlThTd();
+			$schedule = '<table ' . $this->config['table_attributes'] . '><thead ' . $this->config['thead_attributes'] .'>' .  $tr_th;
 		}
 
 		/* End Head*/
@@ -476,6 +583,10 @@ class Schedule
 
 			$schedule .= '</thead><tbody '. $this->config['tbody_attributes'] .'>' . $this->getHtmlTrTdMonthDay(). '</tbody></table>';
 
+		} elseif ($this->config['work_by'] === 'calendar') { 
+			
+			$schedule .= '</thead><tbody '. $this->config['tbody_attributes'] .'>' . $this->getHtmlTrTdCalendar(). '</tbody></table>';
+			
 		} else {
 
 			$schedule .= '</thead><tbody '. $this->config['tbody_attributes'] .'>' . $this->getHtmlTrTdDefault(). '</tbody></table>';

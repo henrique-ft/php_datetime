@@ -20,10 +20,10 @@ $schedule = new Blacktools\DateTime\Schedule([
 			'show_hour_interval' => false,
 			'show_week_days' => true,
 			'language' => 'PT',
-			'start_hour' => '00:00:00',
-			'end_hour' => '00:02:00',
-			'work_by' => 'all',
-			'hour_interval' => '00:30:00' 
+			'work_by' => 'calendar',
+			'hour_interval' => '01:00:00' 
         ]);
+        
+echo '<pre>';
 
-echo $schedule->getHtml();
+var_dump($schedule->cells);

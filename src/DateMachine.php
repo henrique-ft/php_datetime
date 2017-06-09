@@ -253,7 +253,6 @@ class DateMachine
      */
 	public static function addDays($start_date, $days = 7, $interval = true)
 	{
-		
 		try {
 
 			if (!DateMachine::validate($start_date)) {
@@ -261,9 +260,14 @@ class DateMachine
 				throw new \Exception("<p> You passed value out from the work format 'Y-m-d', '9999-12-31' : $start_date</p>");			
 			}
 
-			if ($days < 1) {
+			if ($days === 0 || $days === '0' || $days === null) {
 
-				throw new \Exception("<p> Days can't be 0 or negative, you passed: $days</p>");				
+				throw new \Exception("<p> Days can't be 0 or null, you passed: $days</p>");				
+			}
+			
+			if ($days < 0) {
+
+				DateTime::subDays($start_date, abs($days), $interval);				
 			}
     
 			$dates = array();
@@ -286,6 +290,123 @@ class DateMachine
 	            	$dates[] = $current_date;
 	        	}
 	        }
+
+	     	return ($interval)? $dates : $current_date;
+
+     	} catch(\Exception $e) {
+
+            ErrorHandler::displayError($e);
+            
+            return null;
+     	}
+	}
+
+    /**
+     * @param string $start_date
+     * @param number $days
+     * @param boolean $interval
+     *
+     * @return array|string|null
+     */
+	public static function subDays($start_date, $days = 7, $interval = true)
+	{
+		try {
+
+			if (!DateMachine::validate($start_date)) {
+
+				throw new \Exception("<p> You passed value out from the work format 'Y-m-d', '9999-12-31' : $start_date</p>");			
+			}
+
+			if ($days < 1) {
+
+				throw new \Exception("<p> Days can't be 0 or negative, you passed: $days</p>");				
+			}
+     
+			$dates = array();
+
+			$date = date_create($start_date);
+	            
+	        for ($i=0; $i < $days ;$i++) {
+	                
+	            if ($i != 0) {
+	                    
+	                $date = date_create($current_date);
+	            }
+	            
+	            date_sub($date, date_interval_create_from_date_string("1 day"));
+	            $current_date = date_format($date, "Y-m-d");
+
+	            if ($interval) {
+
+	            	$dates[] = $current_date;
+	        	}
+	        }
+	        
+			$dates = array_reverse($dates);
+			
+			$dates[] = $start_date;
+
+	     	return ($interval)? $dates : $current_date;
+
+     	} catch(\Exception $e) {
+
+            ErrorHandler::displayError($e);
+            
+            return null;
+     	}
+	}
+
+    /** date_format($current_date, "Y-m-d") == $day
+     * @param string $start_date
+     * @param number $days
+     * @param boolean $interval
+     *
+     * @return array|string|null
+     */
+	public static function getUntilWeekDayBefore($start_date, $day = 7, $interval = true)
+	{
+		try {
+
+			if (!DateMachine::validate($start_date)) {
+
+				throw new \Exception("<p> You passed value out from the work format 'Y-m-d', '9999-12-31' : $start_date</p>");			
+			}
+
+			$week_days = [0,1,2,3,4,5,6,7];
+
+			if (!in_array($day, $week_days, true)) {
+
+				throw new \Exception("<p> Day can be only 0,1,2,3,4,5,6 or 7 you passed: $day</p>");				
+			}
+     
+			$dates = array();
+
+			$date = date_create($start_date);
+	            
+	        for ($i=0; $i < 7 ;$i++) {
+	                
+	            if ($i != 0) {
+	                    
+	                $date = date_create($current_date);
+	            }
+	            
+	            date_sub($date, date_interval_create_from_date_string("1 day"));
+	            $current_date = date_format($date, "Y-m-d");
+				
+	            if ($interval) {
+
+	            	$dates[] = $current_date;
+	        	}
+	        	
+	        	if ((int)date_format(date_create($current_date), 'w') === (int)$day) {
+	        		
+	        		break;
+	        	}
+	        }
+	        
+			$dates = array_reverse($dates);
+			
+			$dates[] = $start_date;
 
 	     	return ($interval)? $dates : $current_date;
 
@@ -342,7 +463,7 @@ class DateMachine
      *
      * @return array|null
      */	
-	public function weekDays($first = '', $second = '', $type = 'numeric')
+	public function weekDaysBetween($first = '', $second = '', $type = 'numeric')
 	{
 
 		try {

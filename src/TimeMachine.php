@@ -332,7 +332,7 @@ class TimeMachine
                 throw new \Exception("<p> Interval can't be 00:00:00 </p>");                
             }
 
-            $interval = array();
+            $interval = [];
             $i = 0;
             $interval[0]['show'] = date_format(date_create_from_format('H:i:s', $first), $this->config['show_format']);; 
             $interval[0]['work'] = $first;
@@ -387,7 +387,7 @@ class TimeMachine
                 throw new \Exception("<p> Interval can't be 00:00:00 </p>");                
             }
 
-            $interval = array();
+            $interval = [];
             $interval[] = $first;
 
             while (TimeMachine::compare($first, $second, '<')) {

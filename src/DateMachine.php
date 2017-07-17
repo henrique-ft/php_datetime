@@ -37,21 +37,21 @@ class DateMachine
 					'PT' => [
 
 								'days' => ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'],
-								'months' => ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho','agosto','setembro','outubro','novembro','dezembro']
+								'months' => ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho','Julho', 'Agosto','Setembro','Outubro','Novembro','Dezembro']
 
 							],
 							
 					'EN' => [
 
 								'days' => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-								'months' => ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
+								'months' => ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 							],
 							
 					'ES' => [
 
 								'days' => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
-								'months' => ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+								'months' => ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
 							]
 
@@ -356,6 +356,17 @@ class DateMachine
      	}
 	}
 
+	public static function getFirstDateOfCurrentMonth()
+	{
+		return date("Y")."-".date("m")."-1";
+	}
+
+	public static function getFirstWeekDayOfCurrentMonth()
+	{
+		
+		return date_format(date_create(date("Y")."-".date("m")."-1"), 'w');
+	}
+
     /** date_format($current_date, "Y-m-d") == $day
      * @param string $start_date
      * @param number $days
@@ -379,7 +390,7 @@ class DateMachine
 				throw new \Exception("<p> Day can be only 0,1,2,3,4,5,6 or 7 you passed: $day</p>");				
 			}
      
-			$dates = array();
+			$dates = [];
 
 			$date = date_create($start_date);
 	            
@@ -434,7 +445,7 @@ class DateMachine
 				throw new \Exception("<p> You passed values out from the work format 'Y-m-d', '9999-12-31': $first, $second</p>");			
 			}
 
-		    $return = array();
+		    $return = [];
 		    $interval = new \DateInterval('P1D');
 
 		    $end = new \DateTime($second);

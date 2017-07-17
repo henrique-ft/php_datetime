@@ -109,13 +109,25 @@ class Schedule
 			
 			if ($this->config['work_by'] === 'calendar') { 
 				
-				$this->calendar_week_days_excluded = $this->date->getUntilWeekDayBefore($this->config['start_date'], $this->config['calendar_start_week_day_number']);
+				if (!(date_format(date_create($this->config['start_date']), 'w') === '1')) {
 				
-				array_pop($this->calendar_week_days_excluded);
-				
-				$this->dates = $this->date->interval( $this->date->getUntilWeekDayBefore($this->config['start_date'], $this->config['calendar_start_week_day_number'], false), $this->config['end_date'] );
-				$this->week_days = $this->date->weekDaysBetween( $this->date->getUntilWeekDayBefore($this->config['start_date'], $this->config['calendar_start_week_day_number'], false), $this->config['end_date'], 'name');
-				$this->week_days_numeric = $this->date->weekDaysBetween( $this->date->getUntilWeekDayBefore($this->config['start_date'], $this->config['calendar_start_week_day_number'], false), $this->config['end_date']);
+					$this->calendar_week_days_excluded = $this->date->getUntilWeekDayBefore($this->config['start_date'], $this->config['calendar_start_week_day_number']);
+					array_pop($this->calendar_week_days_excluded);
+					
+					$this->dates = $this->date->interval( $this->date->getUntilWeekDayBefore($this->config['start_date'], $this->config['calendar_start_week_day_number'], false), $this->config['end_date'] );
+					$this->week_days = $this->date->weekDaysBetween( $this->date->getUntilWeekDayBefore($this->config['start_date'], $this->config['calendar_start_week_day_number'], false), $this->config['end_date'], 'name');
+					$this->week_days_numeric = $this->date->weekDaysBetween( $this->date->getUntilWeekDayBefore($this->config['start_date'], $this->config['calendar_start_week_day_number'], false), $this->config['end_date']);
+					
+					
+				//	die();
+				} else {
+					
+					$this->calendar_week_days_excluded = [];
+					
+					$this->dates = $this->date->interval( $this->config['start_date'], $this->config['end_date'] );
+					$this->week_days = $this->date->weekDaysBetween( $this->config['start_date'], $this->config['end_date'], 'name');
+					$this->week_days_numeric = $this->date->weekDaysBetween( $this->config['start_date'], $this->config['end_date']);
+				}
 				
 			} else {
 			
@@ -177,8 +189,8 @@ class Schedule
 			} elseif ($this->config['work_by'] === 'calendar') {
 				
 				foreach ($this->dates as $date) {
-
-					$cells[$date][$this->date->weekDay($date)] = ['content' => '', 'attributes' => ''];
+					
+					$cells[$date][$this->date->weekDay($date)] = ['content' => "<span class='week_day_number'>".date_format(date_create($date), 'd')."</span>", 'attributes' => ''];
 				}
 				
 			} else { 
@@ -365,10 +377,9 @@ class Schedule
 		
 		try {
 		
-			if (!is_array($settings)) {
+			if (!is_array($cells)) {
 	                    
 	            throw new \Exception("Parameter must be a array");
-	                    
 	        }
 	        
 			$this->cells = array_replace_recursive($this->cells, array_intersect_key( $cells , $this->cells));
@@ -506,7 +517,7 @@ class Schedule
 				
 				} else {
 					
-					$schedule .= "<td></td>";
+					$schedule .= "<td class='week_day_excluded'></td>";
 				}	
 			}
 			
